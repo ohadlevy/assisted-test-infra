@@ -9,7 +9,8 @@ ISO_URL=$1
 MOUNT='mount -o loop,ro image'
 KERNEL='images/vmlinuz'
 INITRD='images/initramfs.img'
-KERNEL_ARG='mitigations=auto,nosmt systemd.unified_cgroup_hierarchy=0 coreos.liveiso=fedora-coreos-31.20200319.dev.1 rd.neednet=1 ip=dhcp ignition.firstboot ignition.platform.id=metal'
+SQASHFS='root.squashfs'
+KERNEL_ARG='random.trust_cpu=on rd.luks.options=discard coreos.liveiso=rhcos-46.82.202007071437-0 ignition.firstboot ignition.platform.id=metal'
 KEXEC_PATH='/usr/local/bin'
 KEXEC_IMG='quay.io/ohadlevy/kexec'
 
@@ -25,4 +26,5 @@ $MOUNT mnt && cd mnt
 printf '%s %s\n' "$(date)" "$line"
 echo kexecing $(hostname)... rebooting.
 
-$KEXEC_PATH/kexec --force --initrd=$INITRD --append="$KERNEL_ARG" $KERNEL
+cat $INITRD $SQASHFS > /tmp/initrd
+$KEXEC_PATH/kexec --force --reset-vga -d --initrd=/tmp/initrd --append="$KERNEL_ARG" $KERNEL
